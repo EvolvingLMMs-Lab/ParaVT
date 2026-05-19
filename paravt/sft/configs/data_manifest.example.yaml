@@ -1,0 +1,41 @@
+# ParaVT SFT data manifest — example.
+#
+# This file lists the parquets that lmms-engine will iterate over. Each
+# entry is a separate dataset; lmms-engine concatenates them via the
+# `_align_and_concatenate` shim documented in
+# patches/lmms-engine/README.md.
+#
+# Filenames match the splits published at
+# https://huggingface.co/datasets/ParaVT/ParaVT-Parquet -- after running
+# `paravt.data.materialize`, drop the materialized parquets under
+# ${PARAVT_DATA_ROOT}/paravt_sft/ and the manifest below resolves
+# unchanged. Paths use bash-style env-var expansion at YAML load time.
+
+datasets:
+  - path: ${PARAVT_DATA_ROOT}/paravt_sft/paravt_sft_geminicot_4k8.parquet
+    data_folder: null
+    data_type: parquet
+
+  - path: ${PARAVT_DATA_ROOT}/paravt_sft/paravt_sft_selftrace_15k3.parquet
+    data_folder: null
+    data_type: parquet
+
+  - path: ${PARAVT_DATA_ROOT}/paravt_sft/paravt_sft_tvg_6k3.parquet
+    data_folder: null
+    data_type: parquet
+
+  - path: ${PARAVT_DATA_ROOT}/paravt_sft/paravt_sft_museg_2k5.parquet
+    data_folder: null
+    data_type: parquet
+
+  - path: ${PARAVT_DATA_ROOT}/paravt_sft/paravt_sft_charades_12k4.parquet
+    data_folder: null
+    data_type: parquet
+
+  - path: ${PARAVT_DATA_ROOT}/paravt_sft/paravt_sft_longvideoreason_5k2.parquet
+    data_folder: null
+    data_type: parquet
+
+  - path: ${PARAVT_DATA_ROOT}/paravt_sft/paravt_sft_videor1_50k.parquet
+    data_folder: null
+    data_type: parquet

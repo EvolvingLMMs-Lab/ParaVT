@@ -1,0 +1,221 @@
+# ParaVT RL recipe — base configuration.
+#
+# This file defines the AReaL-side training configuration shared by every
+# recipe in this directory. Recipe variants alongside this file
+# (paravt/rl/configs/paragrpo_8b.yaml, vanilla_grpo_8b.yaml, ...) extend it
+# via OmegaConf defaults inheritance and add the ParaVT-specific knobs.
+#
+# Paths are resolved from environment variables so the same recipe works on
+# any cluster. Set the following before launching:
+#
+#   PARAVT_FILEROOT     directory where checkpoints + logs land
+#   PARAVT_BASE_MODEL   HF snapshot path to the base/SFT initial weights
+#   PARAVT_TRAIN_DATA   parquet file for training rollouts
+#   PARAVT_VALID_DATA   parquet file for validation rollouts
+#
+# Optional overrides:
+#   WANDB_ENTITY        wandb entity (omitted if unset)
+#   WANDB_PROJECT       defaults to "paravt"
+
+experiment_name: paravt
+trial_name: default-run
+
+seed: 1
+enable_offload: false
+total_train_epochs: 100
+tokenizer_path: ${actor.path}
+
+cluster:
+  n_nodes: 1
+  n_gpus_per_node: 8
+  fileroot: ${oc.env:PARAVT_FILEROOT,./experiments}
+  name_resolve:
+    type: nfs
+    nfs_record_root: ${oc.env:PARAVT_FILEROOT,./experiments}/name_resolve
+
+allocation_mode: sglang:d1p1t1+d7p1t1
+
+scheduler:
+  type: local
+
+rollout:
+  experiment_name: ${experiment_name}
+  trial_name: ${trial_name}
+  max_concurrent_rollouts: 64
+  queue_size: null
+  consumer_batch_size: ${train_dataset.batch_size}
+  max_head_offpolicyness: 2
+  enable_rollout_tracing: true
+  scheduling_spec: ${actor.scheduling_spec}
+  fileroot: ${cluster.fileroot}
+  tokenizer_path: ${tokenizer_path}
+  dump_to_file: true
+
+gconfig:
+  n_samples: 8
+  min_new_tokens: 0
+  max_new_tokens: 2048
+  greedy: false
+  temperature: 0.7
+
+hierarchical_agent:
+  max_turns: 3
+  enable_subagents: crop_video
+  subagents_kwargs:
+    crop_video:
+      timeout: 120
+      debug_mode: true
+  nframes: 64
+  fps: 1
+  max_pixels: 50176
+  min_pixels: 784
+  max_frames: 64
+
+actor:
+  experiment_name: ${experiment_name}
+  trial_name: ${trial_name}
+  path: ${oc.env:PARAVT_BASE_MODEL,Qwen/Qwen3-VL-8B-Instruct}
+  init_from_scratch: false
+  attn_impl: sdpa
+  disable_dropout: true
+  gradient_checkpointing: true
+  dtype: bfloat16
+  mb_spec:
+    max_tokens_per_mb: 16384
+  optimizer:
+    type: adam
+    lr: 2e-6
+    weight_decay: 0.01
+    beta1: 0.9
+    beta2: 0.999
+    eps: 1e-8
+    lr_scheduler_type: constant
+    gradient_clipping: 1.0
+    warmup_steps_proportion: 0.0
+  eps_clip: 0.2
+  temperature: ${gconfig.temperature}
+  reward_scaling: 10.0
+  reward_bias: -0.2
+  kl_ctl: 0.01
+  ppo_n_minibatches: 1
+  recompute_logprob: true
+  use_decoupled_loss: true
+  behav_imp_weight_cap: 5.0
+  reward_norm:
+    mean_level: group
+    std_level: group
+    group_size: ${gconfig.n_samples}
+  adv_norm:
+    mean_level: batch
+    std_level: batch
+  max_new_tokens: ${gconfig.max_new_tokens}
+  scheduling_spec:
+    - task_type: worker
+      port_count: 2
+      gpu: 1
+      cpu: 4
+      mem: 32
+      cmd: python3 -m areal.scheduler.rpc.rpc_server
+      env_vars: {}
+
+ref:
+  experiment_name: ${experiment_name}
+  trial_name: ${trial_name}
+  path: ${actor.path}
+  init_from_scratch: false
+  attn_impl: sdpa
+  disable_dropout: true
+  dtype: ${actor.dtype}
+  mb_spec:
+    max_tokens_per_mb: 16384
+  optimizer: null
+  scheduling_strategy:
+    type: colocation
+    target: actor
+  scheduling_spec: ${actor.scheduling_spec}
+
+sglang:
+  model_path: ${actor.path}
+  random_seed: ${seed}
+  skip_tokenizer_init: true
+  dtype: ${actor.dtype}
+  max_running_requests: 32
+  context_length: 32768
+  mem_fraction_static: 0.7
+  enable_multimodal: true
+  attention_backend: flashinfer
+  disable_cuda_graph: true
+  torch_compile_max_bs: 0
+  sampling_backend: pytorch
+
+vllm:
+  model: ${actor.path}
+  seed: ${seed}
+  skip_tokenizer_init: false
+  dtype: ${actor.dtype}
+  max_model_len: 32768
+  gpu_memory_utilization: 0.9
+  disable_sliding_window: false
+
+# train_dataset.batch_size MUST divide the trainer world_size implied by
+# allocation_mode (e.g. d3p1t1 → world_size 3 → batch_size in {3,6,9,...}).
+# The default 7 matches the 8-GPU (d7p1t1 trainer) layout below; if you
+# downsize allocation_mode, also resize batch_size accordingly or AReaL
+# will raise "batch size(N) must be divisible by world_size(M)".
+train_dataset:
+  batch_size: 7
+  shuffle: true
+  pin_memory: true
+  num_workers: 4
+  path: ${oc.env:PARAVT_TRAIN_DATA,./data/paravt_rl_diverse_4k4.parquet}
+  type: rl
+
+valid_dataset:
+  batch_size: 7
+  pin_memory: true
+  num_workers: 4
+  path: ${oc.env:PARAVT_VALID_DATA,./data/paravt_rl_diverse_4k4.parquet}
+  type: rl
+
+saver:
+  experiment_name: ${experiment_name}
+  trial_name: ${trial_name}
+  fileroot: ${cluster.fileroot}
+  freq_epochs: 1
+  freq_steps: 5
+  freq_secs: null
+
+recover:
+  mode: auto
+  experiment_name: ${experiment_name}
+  trial_name: ${trial_name}
+  fileroot: ${cluster.fileroot}
+  freq_epochs: 1
+  freq_steps: 5
+  freq_secs: null
+
+evaluator:
+  experiment_name: ${experiment_name}
+  trial_name: ${trial_name}
+  fileroot: ${cluster.fileroot}
+  freq_epochs: 1
+  freq_steps: null
+  freq_secs: null
+
+stats_logger:
+  experiment_name: ${experiment_name}
+  trial_name: ${trial_name}
+  fileroot: ${cluster.fileroot}
+  wandb:
+    mode: ${oc.env:WANDB_MODE,online}
+    project: ${oc.env:WANDB_PROJECT,paravt}
+    entity: ${oc.env:WANDB_ENTITY,null}
+    name: ${trial_name}
+
+perf_tracer:
+  experiment_name: ${experiment_name}
+  trial_name: ${trial_name}
+  fileroot: ${cluster.fileroot}
+  enabled: false
+  session_tracer:
+    enabled: true

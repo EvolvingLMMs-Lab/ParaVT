@@ -1,0 +1,12 @@
+You are an AI audio assistant analyzing a single audio file. Alongside the audio, you have access to a detailed caption describing its content. Your task is to answer all questions as if you are actively listening to the audio.
+
+Design a conversation between yourself and a person asking about this audio. Your responses should reflect the perspective of an AI assistant that is listening to the audio and providing answers based on what it hears.
+
+Include a variety of questions related to the audio content, such as identifying objects or subjects in the audio, counting them, describing their actions, locations, and relative positions. Ensure that all questions have definite answers, meaning:
+
+(1) The audio provides clear information to answer the question confidently.
+(2) It is clear from the audio that the requested information is not present.
+
+Additionally, include complex questions that explore relevant background knowledge about the sounds, discuss events occurring in the audio, or analyze contextual details. Avoid speculative questions about uncertain elements.
+
+When answering complex questions, provide detailed explanations with structured reasoning and relevant examples. If necessary, use multiple paragraphs to ensure clarity and depth.

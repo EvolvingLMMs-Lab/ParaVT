@@ -1,0 +1,15 @@
+diff --git a/src/lmms_engine/datasets/iterable/qwen3_vl_iterable_dataset.py b/src/lmms_engine/datasets/iterable/qwen3_vl_iterable_dataset.py
+index ff09e80..1608a00 100644
+--- a/src/lmms_engine/datasets/iterable/qwen3_vl_iterable_dataset.py
++++ b/src/lmms_engine/datasets/iterable/qwen3_vl_iterable_dataset.py
+@@ -22,6 +22,10 @@ class Qwen3VLIterableDataset(VisionSFTIterableDataset):
+         videos = []
+         kwargs = {}
+         messages = data["messages"]
++        # Support messages stored as JSON string (for schema compatibility)
++        if isinstance(messages, str):
++            import json
++            messages = json.loads(messages)
+         for message in messages:
+             for content in message["content"]:
+                 if content["type"] == "image_url":

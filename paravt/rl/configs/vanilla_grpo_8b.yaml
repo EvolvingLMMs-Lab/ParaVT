@@ -1,0 +1,23 @@
+# ParaVT RL recipe — vanilla GRPO baseline.
+#
+# Both PARA-GRPO components off (no Exploration Anchoring, no nFrames
+# Gating). Useful as a comparison config — raw token-F1 GRPO with no
+# format / gating / anchoring augmentation.
+
+defaults:
+  - _base
+  - _self_
+
+trial_name: vanilla-grpo-8b
+
+paravt:
+  constrained:
+    think_prefix: false
+    answer_suffix: false
+  gating:
+    nframes_gating: false
+  anchoring:
+    weight: 0.0
+  reward:
+    mode: f1
+    format_weight: 1.0

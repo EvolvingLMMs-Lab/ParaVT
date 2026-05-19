@@ -1,0 +1,68 @@
+--- a/areal/utils/stats_logger.py
++++ b/areal/utils/stats_logger.py
+@@ -3,7 +3,12 @@
+ import time
+ from dataclasses import asdict
+ 
+-import swanlab
++try:
++    import swanlab  # type: ignore
++    _HAS_SWANLAB = True
++except ImportError:  # swanlab is optional; ParaVT uses wandb by default.
++    swanlab = None  # type: ignore
++    _HAS_SWANLAB = False
+ import torch.distributed as dist
+ import wandb
+ from tensorboardX import SummaryWriter
+@@ -96,21 +101,21 @@
+                     )
+ 
+         swanlab_config = self.config.swanlab
+-        if swanlab_config.mode != "disabled":
++        if _HAS_SWANLAB and swanlab_config.mode != "disabled":
+             if swanlab_config.api_key:
+                 swanlab.login(swanlab_config.api_key)
+             else:
+                 swanlab.login()
+ 
+         swanlab_config = self.config.swanlab
+-        swanlab.init(
+-            project=swanlab_config.project or self.config.experiment_name,
+-            experiment_name=swanlab_config.name or self.config.trial_name + "_train",
+-            # NOTE: change from swanlab_config.config to log all experiment config, to be tested
+-            config=exp_config_dict,
+-            logdir=self.get_log_path(self.config),
+-            mode=swanlab_config.mode,
+-        )
++        if _HAS_SWANLAB:
++            swanlab.init(
++                project=swanlab_config.project or self.config.experiment_name,
++                experiment_name=swanlab_config.name or self.config.trial_name + "_train",
++                config=exp_config_dict,
++                logdir=self.get_log_path(self.config),
++                mode=swanlab_config.mode,
++            )
+         # tensorboard logging
+         self.summary_writer = None
+         if self.config.tensorboard.path is not None:
+@@ -132,7 +137,8 @@
+         )
+         if self._wandb_ok:
+             wandb.finish()
+-        swanlab.finish()
++        if _HAS_SWANLAB:
++            swanlab.finish()
+         if self.summary_writer is not None:
+             self.summary_writer.close()
+ 
+@@ -155,7 +161,9 @@
+             self.print_stats(item)
+             if self._wandb_ok:
+                 wandb.log(item, step=log_step + i)
+-            swanlab.log(item, step=log_step + i)
++            if _HAS_SWANLAB:
++                if _HAS_SWANLAB:
++                    swanlab.log(item, step=log_step + i)
+             if self.summary_writer is not None:
+                 for key, val in item.items():
+                     self.summary_writer.add_scalar(f"{key}", val, log_step + i)

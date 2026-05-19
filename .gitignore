@@ -1,0 +1,53 @@
+# ─── secrets — NEVER COMMIT ─────────────────────────────────────────────────
+.secrets.env
+.env
+*.pem
+*.key
+
+# ─── virtualenvs (uv-managed) ───────────────────────────────────────────────
+.venv*/
+.uv-cache/
+
+# ─── experiments and data ───────────────────────────────────────────────────
+experiments/
+/data/
+eval-results/
+.cache/
+.flashattn/
+
+# ─── tracking / logs ────────────────────────────────────────────────────────
+wandb/
+runs/
+events.out.tfevents.*
+*.log
+
+# ─── editor / OS ────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store
+
+# ─── Python ─────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+build/
+dist/
+
+# ─── Jupyter ────────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+
+# ─── checkpoint / model artefacts ───────────────────────────────────────────
+*.pt
+*.bin
+*.safetensors
+*.ckpt
+checkpoints/
+
+# ─── trial / scratch ────────────────────────────────────────────────────────
+*.bak
+.tmp/
+.hydra/
+follower-runner.sh

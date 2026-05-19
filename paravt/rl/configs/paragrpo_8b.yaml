@@ -1,0 +1,31 @@
+# ParaVT RL recipe — full PARA-GRPO.
+#
+# Both PARA-GRPO components on (Exploration Anchoring + nFrames
+# Gating). The canonical configuration that reproduces our headline
+# RL number.
+#
+# Launch:
+#     bash scripts/run_rl.sh paravt/rl/configs/paragrpo_8b.yaml \
+#         trial_name=paragrpo-8b-run0
+#
+# Required env vars: PARAVT_FILEROOT, PARAVT_BASE_MODEL, PARAVT_TRAIN_DATA.
+# See paravt/rl/configs/_base.yaml for the full list.
+
+defaults:
+  - _base
+  - _self_
+
+trial_name: paragrpo-8b
+
+# PARA-GRPO method block — see paravt/rl/config.py for the schema.
+paravt:
+  constrained:
+    think_prefix: true     # enforce leading <think> block
+    answer_suffix: true    # enforce trailing <answer> block
+  gating:
+    nframes_gating: true   # randomize overview frames in {4,8,16,32,64}
+  anchoring:
+    weight: 0.5            # outer λ_anchor on R_anchor (set to 0 to disable)
+  reward:
+    mode: f1               # f1 | exact | llm
+    format_weight: 1.0

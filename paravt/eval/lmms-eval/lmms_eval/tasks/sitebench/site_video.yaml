@@ -1,0 +1,70 @@
+# taken directly from https://github.com/wenqi-wang20/SITE-Bench/blob/main/eval_scripts/sitebench/site_video.yaml
+dataset_path: franky-veteran/SITE-Bench
+dataset_name: video_test
+dataset_kwargs:
+  cache_dir: sitebench
+  video: True # NOTE: Set to True to download all the required data(including images and videos)
+task: "site_bench_video"
+test_split: test
+output_type: generate_until
+generation_kwargs:
+  max_new_tokens: 1024
+  temperature: 0
+  top_p: 1.0
+  num_beams: 1
+  do_sample: false
+doc_to_visual: !function utils.spatial_doc_to_visual_video
+doc_to_text: !function utils.spatial_doc_to_text_video
+doc_to_messages: !function utils.spatial_doc_to_messages_video
+doc_to_target: "answer"
+process_results: !function utils.spatial_process_results
+metric_list:
+  - metric: accuracy
+    aggregation: !function utils.spatial_aggregate_results
+    higher_is_better: true
+  - metric: chance_adjusted_acc
+    aggregation: !function utils.spatial_aggregate_results
+    higher_is_better: true
+  - metric: 3d_information_understanding_acc
+    aggregation: !function utils.aggregate_3d_information_understanding_acc
+    higher_is_better: true
+  - metric: 3d_information_understanding_caa
+    aggregation: !function utils.aggregate_3d_information_understanding_caa
+    higher_is_better: true
+  - metric: counting_and_existence_acc
+    aggregation: !function utils.aggregate_counting_and_existence_acc
+    higher_is_better: true
+  - metric: counting_and_existence_caa
+    aggregation: !function utils.aggregate_counting_and_existence_caa
+    higher_is_better: true
+  - metric: movement_prediction_and_navigation_acc
+    aggregation: !function utils.aggregate_movement_prediction_and_navigation_acc
+    higher_is_better: true
+  - metric: movement_prediction_and_navigation_caa
+    aggregation: !function utils.aggregate_movement_prediction_and_navigation_caa
+    higher_is_better: true
+  - metric: multiview_and_crossimage_reasoning_acc
+    aggregation: !function utils.aggregate_multiview_and_crossimage_reasoning_acc
+    higher_is_better: true
+  - metric: multiview_and_crossimage_reasoning_caa
+    aggregation: !function utils.aggregate_multiview_and_crossimage_reasoning_caa
+    higher_is_better: true
+  - metric: object_localization_and_positioning_acc
+    aggregation: !function utils.aggregate_object_localization_and_positioning_acc
+    higher_is_better: true
+  - metric: object_localization_and_positioning_caa
+    aggregation: !function utils.aggregate_object_localization_and_positioning_caa
+    higher_is_better: true
+  - metric: spatial_relationship_reasoning_acc
+    aggregation: !function utils.aggregate_spatial_relationship_reasoning_acc
+    higher_is_better: true
+  - metric: spatial_relationship_reasoning_caa
+    aggregation: !function utils.aggregate_spatial_relationship_reasoning_caa
+    higher_is_better: true
+lmms_eval_specific_kwargs:
+  default:
+    post_prompt: "Give me the answer letter directly. The best answer is:"
+  gemini_api:
+    pre_prompt: "<video>"
+metadata:
+  - version: 0.0

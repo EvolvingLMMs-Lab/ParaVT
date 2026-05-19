@@ -1,0 +1,55 @@
+# ParaVT evaluation — agentic mode (multi-turn crop_video dispatch).
+#
+# Headline configuration: ParaVT's reported numbers run in this mode.
+# The driver (paravt/eval/driver.py) sends each video through the
+# image_url channel, prompts the model with GENERAL_AGENTIC_SYSTEM,
+# accepts multiple <tool_call> blocks per turn (parallel dispatch),
+# and finalizes an answer after up to `max_turns` rounds.
+#
+# The same recipe is used for all three agentic_general baselines:
+# ParaVT-8B (Ours), Qwen3-VL-8B (tool), and Conan-7B. Override
+# `model_path` per row.
+
+eval_kind: withtool
+prompt_mode: agentic_general
+
+# Channel the initial video travels through. image_url = client-side
+# base64 frames (the default for MCQ benches). For charades grounding
+# pass --video_channel video_url at the CLI; the per-row scripts under
+# paravt/eval/scripts/ wire that automatically.
+video_channel: image_url
+
+# vLLM --mm-processor-kwargs: default OFF. See paravt/eval/README.md
+# "Why --no_mm_kwargs is the default".
+no_mm_kwargs: true
+
+# Model under test. Either an HF Hub id or a local snapshot path.
+model_path: ${oc.env:PARAVT_EVAL_MODEL,ParaVT/ParaVT-8B}
+
+# Comma-separated list of benchmarks the eval driver will iterate over.
+# IMPORTANT: prefer scripts/run_eval.sh over passing all datasets
+# in one invocation — running 5+ datasets through a single vLLM session
+# starts dropping connections silently. See paravt/eval/README.md.
+datasets: videomme,videomme_wsub,longvideobench,lvbench,mlvu,mmvu
+
+# Output directory for per-sample JSON.
+output_dir: ${oc.env:PARAVT_EVAL_OUT,./eval-results}
+
+# vLLM server placement (8-GPU box: 8 tp1 replicas; 4-GPU box: --num_gpus 4).
+num_gpus: 8
+base_port: 8000
+
+# Frame budget for the main agent's overview view. Subagent calls can
+# raise this on demand via crop_video.
+main_nframes: 64
+
+# Up to `max_turns` rounds of crop_video dispatch before forcing a final
+# answer. Each turn accepts at most `max_parallel` tool calls.
+max_turns: 3
+max_parallel: 5
+
+# Worker concurrency per shard. 4 is the empirical winner.
+workers_per_shard: 4
+
+# Smoke test: process only the first 5 samples per dataset.
+smoke_test: false

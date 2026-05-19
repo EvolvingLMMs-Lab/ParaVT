@@ -1,0 +1,43 @@
+cff-version: 1.2.0
+title: 'ParaVT: Taming the Tool Prior Paradox for Parallel Tool Use in Agentic Video Reinforcement Learning'
+message: 'If you use this software, please cite it as below.'
+type: software
+authors:
+  - given-names: Zuhao
+    family-names: Yang
+  - given-names: Kaichen
+    family-names: Zhang
+  - given-names: Sudong
+    family-names: Wang
+  - given-names: Keming
+    family-names: Wu
+  - given-names: Zhongyu
+    family-names: Yang
+  - given-names: Bo
+    family-names: Li
+  - given-names: Xiaojuan
+    family-names: Qi
+  - given-names: Shijian
+    family-names: Lu
+  - given-names: Xingxuan
+    family-names: Li
+  - given-names: Lidong
+    family-names: Bing
+license: Apache-2.0
+repository-code: 'https://github.com/EvolvingLMMs-Lab/ParaVT'
+url: 'https://github.com/EvolvingLMMs-Lab/ParaVT'
+identifiers:
+  - type: other
+    value: 'arXiv:2605.20342'
+    description: 'arXiv preprint'
+keywords:
+  - long video understanding
+  - agentic reinforcement learning
+  - tool use
+  - PARA-GRPO
+abstract: >-
+  ParaVT replaces the sequential one-tool-per-turn pattern with a parallel
+  single-turn dispatch and post-trains the agent with PARA-GRPO
+  (Parseability-Anchored and Ratio-gAted GRPO) to address the Tool Prior
+  Paradox: the shared cause of Format Fragility and the Tool Necessity Gap
+  surfaced by vanilla GRPO on a tool-native LMM.

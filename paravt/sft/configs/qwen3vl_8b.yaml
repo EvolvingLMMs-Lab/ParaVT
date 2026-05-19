@@ -1,0 +1,69 @@
+# ParaVT SFT recipe — Qwen3-VL-8B cold-start.
+#
+# Hands off to lmms-engine via torchrun. All paths are env-var-driven;
+# see .secrets.env.example for the variable list.
+#
+# Launch:
+#     bash scripts/run_sft.sh paravt/sft/configs/qwen3vl_8b.yaml
+#
+# Required env vars:
+#   PARAVT_FILEROOT     output checkpoints + logs
+#   PARAVT_BASE_MODEL   HF snapshot or hub id
+#   PARAVT_SFT_DATA     path to the data manifest YAML
+
+trainer_type: fsdp2_trainer
+
+dataset_config:
+  dataset_path: ${oc.env:PARAVT_SFT_DATA,paravt/sft/configs/data_manifest.example.yaml}
+  dataset_format: yaml
+  dataset_type: qwen3_vl_iterable
+  packing: true
+  packing_length: 8192
+  filter_overlong: true
+  video_backend: qwen_vl_utils
+  video_sampling_strategy: fps
+  video_max_pixels: 50176
+  video_min_pixels: 784
+  video_max_frames: 64
+  frame_num: 64
+  fps: 1
+  shuffle: true
+  processor_config:
+    processor_name: ${oc.env:PARAVT_BASE_MODEL,Qwen/Qwen3-VL-8B-Instruct}
+    processor_type: qwen3_vl
+
+model_config:
+  load_from_pretrained_path: ${oc.env:PARAVT_BASE_MODEL,Qwen/Qwen3-VL-8B-Instruct}
+  attn_implementation: flash_attention_2
+
+trainer_args:
+  per_device_train_batch_size: 4
+  gradient_accumulation_steps: 1
+  learning_rate: 2.0e-5
+  weight_decay: 0.01
+  num_train_epochs: 1
+  max_steps: 1500
+  lr_scheduler_type: cosine
+  warmup_ratio: 0.05
+  bf16: true
+  gradient_checkpointing: true
+  logging_steps: 1
+  save_strategy: steps
+  save_steps: 100
+  save_total_limit: 30
+  output_dir: ${oc.env:PARAVT_FILEROOT,./experiments}/sft-paravt
+  run_name: paravt-sft
+  report_to: ["wandb"]
+  fsdp2: true
+  fsdp_config:
+    transformer_layer_cls_to_wrap: ["Qwen3VLTextDecoderLayer"]
+    reshard_after_forward: false
+  sp_ulysses_degree: 1
+  use_liger_kernel: true
+  use_rmpad: true
+  dataloader_num_workers: 8
+  dataloader_prefetch_factor: 4
+  dataloader_persistent_workers: true
+  print_batch_input_steps: 5
+  group_by_length: false
+  optim: adamw_torch_fused

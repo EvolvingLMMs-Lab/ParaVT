@@ -1,0 +1,58 @@
+dataset_path: nyu-visionx/VSI-Bench
+
+output_type: generate_until
+process_docs: !function utils.process_docs
+doc_to_visual: !function utils.vsibench_doc_to_visual
+doc_to_text: !function utils.vsibench_doc_to_text
+doc_to_target: "ground_truth"
+generation_kwargs:
+  max_new_tokens: 16
+  temperature: 0
+  top_p: 1.0
+  num_beams: 1
+  do_sample: false
+# The return value of process_results will be used by metrics
+process_results: !function utils.vsibench_process_results
+metric_list:
+  - metric: vsibench_overall
+    aggregation: !function utils.vsibench_aggregate_overall
+    higher_is_better: true
+  - metric: obj_appearance_order_accuracy
+    aggregation: !function utils.vsibench_aggregate_obj_appearance_order_accuracy
+    higher_is_better: true
+  - metric: object_abs_distance_mra
+    aggregation: !function utils.vsibench_aggregate_object_abs_distance_mra
+    higher_is_better: true
+  - metric: object_counting_mra
+    aggregation: !function utils.vsibench_aggregate_object_counting_mra
+    higher_is_better: true
+  - metric: object_rel_distance_accuracy
+    aggregation: !function utils.vsibench_aggregate_object_rel_distance_accuracy
+    higher_is_better: true
+  - metric: object_size_estimation_mra
+    aggregation: !function utils.vsibench_aggregate_object_size_estimation_mra
+    higher_is_better: true
+  - metric: room_size_estimation_mra
+    aggregation: !function utils.vsibench_aggregate_room_size_estimation_mra
+    higher_is_better: true
+  - metric: route_planning_accuracy
+    aggregation: !function utils.vsibench_aggregate_route_planning_accuracy
+    higher_is_better: true
+  - metric: object_rel_direction_accuracy
+    aggregation: !function utils.vsibench_aggregate_object_rel_direction_accuracy
+    higher_is_better: true
+lmms_eval_specific_kwargs:
+  default:
+    pre_prompt: ""
+    mca_post_prompt: "Answer with the option's letter from the given choices directly."
+    na_post_prompt: "Please answer the question using a single word or phrase."
+  gemini_api:
+    pre_prompt: ""
+    mca_post_prompt: "Answer with the option's letter from the given choices directly."
+    na_post_prompt: "Do not response anything other than a single number!"
+  gpt4v:
+    pre_prompt: ""
+    mca_post_prompt: "Answer with the option's letter from the given choices directly."
+    na_post_prompt: "Do not response anything other than a single number!"
+metadata:
+  - version: 0.0

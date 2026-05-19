@@ -1,0 +1,29 @@
+# ParaVT evaluation — direct mode (single forward pass, minimal prompt).
+#
+# Use for plain instruct backbones where the model has not been trained
+# on the <think>/<tool_call>/<answer> contract (Qwen2.5-VL-7B). For
+# reasoning baselines (Video-R1, VideoChat-R1, Time-R1, ...) override
+# with `--prompt_mode reasoning` on the launcher.
+
+eval_kind: notool
+prompt_mode: direct
+
+# Channel: image_url is the default for MCQ benches.
+video_channel: image_url
+
+# vLLM --mm-processor-kwargs: default OFF.
+no_mm_kwargs: true
+
+model_path: ${oc.env:PARAVT_EVAL_MODEL,Qwen/Qwen2.5-VL-7B-Instruct}
+
+datasets: videomme,videomme_wsub,longvideobench,lvbench,mlvu,mmvu
+
+output_dir: ${oc.env:PARAVT_EVAL_OUT,./eval-results}
+
+num_gpus: 8
+base_port: 8000
+main_nframes: 64
+max_turns: 1
+max_parallel: 5
+workers_per_shard: 4
+smoke_test: false

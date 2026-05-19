@@ -1,0 +1,24 @@
+diff --git a/src/lmms_engine/datasets/iterable/vision_iterable_dataset.py b/src/lmms_engine/datasets/iterable/vision_iterable_dataset.py
+index 2af5b86..33219f9 100644
+--- a/src/lmms_engine/datasets/iterable/vision_iterable_dataset.py
++++ b/src/lmms_engine/datasets/iterable/vision_iterable_dataset.py
+@@ -63,6 +63,9 @@ class VisionSFTIterableDataset(MultiModalIterableDataset):
+         videos = []
+         kwargs = {}
+         messages = data["messages"]
++        if isinstance(messages, str):
++            import json
++            messages = json.loads(messages)
+         for message in messages:
+             for content in message["content"]:
+                 if content["type"] == "image_url":
+@@ -92,6 +95,9 @@ class VisionSFTIterableDataset(MultiModalIterableDataset):
+ 
+     def load_from_hf(self, data) -> Dict[str, torch.Tensor]:
+         messages = data["messages"]
++        if isinstance(messages, str):
++            import json
++            messages = json.loads(messages)
+         hf_messages = TrainUtilities.convert_open_to_hf(messages)
+         if isinstance(data["image"], list):
+             images = data["image"]

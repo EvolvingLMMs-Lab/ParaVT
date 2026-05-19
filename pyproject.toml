@@ -1,0 +1,130 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "paravt"
+version = "0.1.0"
+description = "Parallel Agentic Video Tools for long-form video reasoning."
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+license = { text = "Apache-2.0" }
+keywords = [
+    "video",
+    "reinforcement-learning",
+    "agent",
+    "multimodal",
+    "grpo",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "omegaconf>=2.3,<3",
+    "datasets>=3,<5",
+    "transformers>=4.57",
+    "openai>=1.40",
+    "pydantic>=2",
+    "qwen-vl-utils>=0.0.10",
+]
+
+[project.optional-dependencies]
+# Pin sets per workload — install only what you need.
+# These are headline pins; the full transitive lock lives in requirements/*.lock.
+#
+# nvidia-cudnn-cu12 floor: torch==2.9.1+cu126 hard-pins 9.10.2.21 (uv will
+# refuse to resolve 9.16 in any of the lock files), so all three lock files
+# pin 9.10. The SGLang multimodal rollout path in RL hits a known cuDNN <9.15
+# nn.Conv3d perf regression (https://github.com/pytorch/pytorch/issues/168167)
+# — scripts/setup_env.sh post-installs 9.16.0.29 in build_rl_env() to fix it.
+# SFT and eval do not exercise the regression and stay on the lock-pinned 9.10.
+sft = [
+    "torch==2.9.1",
+    "nvidia-cudnn-cu12>=9.10",
+    "wandb>=0.25",
+]
+rl = [
+    "torch==2.9.1",
+    "nvidia-cudnn-cu12>=9.16,<10",
+    "sglang==0.5.9",
+    "wandb>=0.25",
+]
+eval = [
+    "torch==2.9.1",
+    "nvidia-cudnn-cu12>=9.10",
+    "vllm>=0.7",
+]
+dev = [
+    "pre-commit>=4",
+    "detect-secrets>=1.5",
+    "pytest>=8",
+    "ruff>=0.7",
+]
+
+[project.urls]
+Homepage = "https://github.com/EvolvingLMMs-Lab/ParaVT"
+Repository = "https://github.com/EvolvingLMMs-Lab/ParaVT"
+Issues = "https://github.com/EvolvingLMMs-Lab/ParaVT/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["paravt"]
+# Vendored frameworks (lmms-engine, AReaL, lmms-eval) and per-workload
+# config / docs / example scripts live under paravt/{sft,rl,eval}/ for
+# discoverability, but they are not part of the Python wheel. Each
+# vendored bundle is installed separately by scripts/setup_env.sh as an
+# editable directory. Excluding them keeps `pip install paravt` to just
+# the importable Python code.
+exclude = [
+    "paravt/README.md",
+    "paravt/sft/lmms-engine",
+    "paravt/sft/configs",
+    "paravt/sft/README.md",
+    "paravt/rl/areal",
+    "paravt/rl/configs",
+    "paravt/rl/README.md",
+    "paravt/eval/lmms-eval",
+    "paravt/eval/configs",
+    "paravt/eval/scripts",
+    "paravt/eval/README.md",
+]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+# uv builds wheels in isolated environments by default. flash-attn / deepspeed /
+# liger-kernel / mamba-ssm / causal-conv1d don't list torch in their
+# build-system.requires, so an isolated build fails with `ModuleNotFoundError:
+# torch` on a fresh follower install. Authoritative fix lives in
+# scripts/setup_env.sh as `uv pip install --no-build-isolation` on a venv
+# that already has torch (two-pass install). The hints below are a
+# belt-and-braces signal for any tooling that does read pyproject.toml.
+[tool.uv]
+no-build-isolation-package = [
+    "flash-attn",
+    "deepspeed",
+    "liger-kernel",
+    "mamba-ssm",
+    "causal-conv1d",
+]
+
+[tool.uv.extra-build-dependencies]
+flash-attn    = ["torch", "setuptools", "wheel", "packaging", "ninja"]
+deepspeed     = ["torch", "setuptools", "wheel"]
+liger-kernel  = ["torch", "setuptools", "wheel"]
+mamba-ssm     = ["torch", "setuptools", "wheel", "packaging", "ninja"]
+causal-conv1d = ["torch", "setuptools", "wheel", "packaging", "ninja"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "B", "UP"]
+ignore = ["E501"]
