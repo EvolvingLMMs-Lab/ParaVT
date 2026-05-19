@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ParaVT &mdash; Taming the Tool Prior Paradox for Parallel Tool Use in Agentic Video Reinforcement Learning</title>
+<meta name="description" content="ParaVT is the first multi-agent end-to-end RL-trained framework for parallel video tool calling, post-trained with PARA-GRPO. Reaches 69.4 on VideoMME with subtitles and tops 6 of 7 long-video benchmarks at the open-source 7-8B scale." />
+<meta property="og:title" content="ParaVT: Taming the Tool Prior Paradox for Parallel Tool Use in Agentic Video Reinforcement Learning" />
+<meta property="og:description" content="A tool-native long-video LMM trained with PARA-GRPO. 6 of 7 SOTA at 7-8B." />
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<!-- Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css" />
+
+<link rel="stylesheet" href="static/css/style.css?v=paravt-6" />
+<link rel="stylesheet" href="static/css/paravt-overrides.css?v=paravt-6" />
+</head>
+<body>
+
+<!-- ===================== TOP NAV ===================== -->
+<nav class="topnav" id="topnav">
+  <div class="nav-inner">
+    <a href="#top" class="brand">
+      <span class="brand-mark">PV</span>
+      <span class="brand-text">ParaVT</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#motivation">Motivation</a></li>
+      <li><a href="#method">Method</a></li>
+      <li><a href="#results">Results</a></li>
+      <li><a href="#dynamics">Ablation</a></li>
+      <li><a href="#bibtex">BibTeX</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ===================== HERO ===================== -->
+<header class="hero" id="top">
+  <div class="hero-bg" aria-hidden="true">
+    <div class="hero-glow glow-a"></div>
+    <div class="hero-glow glow-b"></div>
+    <div class="hero-grid"></div>
+  </div>
+
+  <div class="hero-inner">
+    <div class="badge-row">
+      <span class="badge"><i class="fa-solid fa-cube"></i> Video LMMs &middot; Agentic RL &middot; Long Video Understanding</span>
+    </div>
+
+    <h1 class="hero-title">
+      <span class="title-mono">ParaVT</span>
+      <span class="title-sub">Taming the Tool Prior Paradox<br/>for Parallel Tool Use in Agentic Video Reinforcement Learning</span>
+    </h1>
+
+    <div class="authors">
+      <div class="authors-line">
+        <span class="author"><a class="aname" href="https://mwxely.github.io/" target="_blank" rel="noopener">Zuhao Yang</a><sup class="aff">2,6</sup></span>
+        <span class="author"><a class="aname" href="https://kcz358.github.io/" target="_blank" rel="noopener">Kaichen Zhang</a><sup class="aff">3,6</sup></span>
+        <span class="author"><a class="aname" href="https://xiao4579.github.io/" target="_blank" rel="noopener">Sudong Wang</a><sup class="aff">4</sup></span>
+        <span class="author"><a class="aname" href="https://kemingwu.github.io/" target="_blank" rel="noopener">Keming Wu</a><sup class="aff">5,6</sup></span>
+        <span class="author"><a class="aname" href="https://01yzzyu.github.io/" target="_blank" rel="noopener">Zhongyu Yang</a><sup class="aff">2</sup></span>
+        <span class="author"><a class="aname" href="https://brianboli.com/" target="_blank" rel="noopener">Bo Li</a><sup class="aff">6</sup></span>
+        <span class="author"><a class="aname" href="https://xjqi.github.io/" target="_blank" rel="noopener">Xiaojuan Qi</a><sup class="aff">3</sup></span>
+        <span class="author"><a class="aname" href="https://personal.ntu.edu.sg/shijian.lu/" target="_blank" rel="noopener">Shijian Lu</a><sup class="aff">2,&#9993;</sup></span>
+        <span class="author"><a class="aname" href="https://xingxuanli.github.io/" target="_blank" rel="noopener">Xingxuan Li</a><sup class="aff">1,&#9993;</sup></span>
+        <span class="author"><a class="aname" href="https://lidongbing.github.io/" target="_blank" rel="noopener">Lidong Bing</a><sup class="aff">1</sup></span>
+      </div>
+
+      <div class="affils">
+        <span class="affil"><sup>1</sup>MiroMind</span>
+        <span class="affil"><sup>2</sup>Nanyang Technological University</span>
+        <span class="affil"><sup>3</sup>The University of Hong Kong</span>
+        <span class="affil"><sup>4</sup>Hong Kong University of Science and Technology (Guangzhou)</span>
+        <span class="affil"><sup>5</sup>Tsinghua University</span>
+        <span class="affil"><sup>6</sup>LMMs-Lab</span>
+      </div>
+
+      <div class="author-notes">
+        <span><sup>&#9993;</sup>Corresponding authors</span>
+      </div>
+    </div>
+
+    <p class="hero-tagline">
+      Can a large multimodal model learn to natively invoke tool calls <em>in parallel</em> under agentic RL &mdash; when the very prior that enables tool use also destabilizes it?
+    </p>
+
+    <div class="cta-row">
+      <a class="cta cta-primary" href="https://arxiv.org/abs/2605.20342" target="_blank" rel="noopener"><i class="fa-solid fa-file-pdf"></i> Paper</a>
+      <a class="cta" href="https://github.com/EvolvingLMMs-Lab/ParaVT" target="_blank" rel="noopener"><i class="fa-brands fa-github"></i> Code</a>
+      <a class="cta" href="https://huggingface.co/ParaVT/ParaVT-8B" target="_blank" rel="noopener"><i class="fa-solid fa-robot"></i> Model</a>
+      <a class="cta" href="https://huggingface.co/datasets/ParaVT/ParaVT-Parquet" target="_blank" rel="noopener"><i class="fa-solid fa-database"></i> Data</a>
+      <a class="cta cta-ghost" href="https://huggingface.co/papers/2605.20342" target="_blank" rel="noopener"><i class="fa-solid fa-fire"></i> Daily Paper</a>
+    </div>
+
+  </div>
+</header>
+
+<!-- ===================== KEY NUMBERS ===================== -->
+<section class="section section-tight">
+  <div class="stats-grid reveal">
+    <div class="stat-card">
+      <div class="stat-num stat-rho">69.4</div>
+      <div class="stat-label">VideoMME w/ sub &mdash; open-source 7-8B SOTA</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num stat-rho">+7.9</div>
+      <div class="stat-label">average gain over Qwen3-VL-8B base (%)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num stat-rho">0.64</div>
+      <div class="stat-label">peak parallel tool-call format compliance</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" data-target="6" data-suffix="/7">0</div>
+      <div class="stat-label">benchmarks topped at 7-8B</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" data-target="97" data-suffix="K">0</div>
+      <div class="stat-label">SFT cold-start samples</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num stat-rho">4.4K</div>
+      <div class="stat-label">PARA-GRPO RL samples</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== MOTIVATION ===================== -->
+<section id="motivation" class="section reveal">
+  <div class="section-head">
+    <h2>Motivation</h2>
+  </div>
+  <div class="prose">
+    <p>
+      Long-video understanding is increasingly framed as <em>agentic video reasoning</em>: a large
+      multimodal model (LMM) post-trained with reinforcement learning to invoke video-processing
+      tools. Prior native-RL methods, including our earlier
+      <a href="https://github.com/EvolvingLMMs-Lab/LongVT">LongVT</a> (CVPR 2026), dispatch these
+      tool calls <em>sequentially</em>, one per turn, which is brittle to single mis-localizations,
+      prone to multi-turn context drift, and linear in inference cost.
+    </p>
+  </div>
+
+  <div class="pipeline-grid motivation-grid">
+    <figure class="figure-card pipeline-card">
+      <div class="card-tag">Failure modes</div>
+      <img src="static/images/1_obstacles.png" alt="Two failure modes that share a cause: Format Fragility and Tool Necessity Gap" />
+      <figcaption>
+        <strong>Two failure modes of vanilla GRPO on a tool-native LMM.</strong>
+        <em>Format Fragility</em> (left): under temperature sampling, the policy still generates
+        reasoning content but its SFT-learned
+        <code>&lt;think&gt;</code>/<code>&lt;tool_call&gt;</code>/<code>&lt;answer&gt;</code>
+        boundary closures decay, leaving rollouts that look almost-parseable but mis-tagged.
+        <em>Tool Necessity Gap</em> (right): with 64 overview frames many prompts can be answered
+        without tools, so the GRPO advantage between calling and skipping is near-zero, and the
+        parallel tool-call rate collapses within a few RL steps while accuracy oscillates flatly.
+      </figcaption>
+    </figure>
+    <figure class="figure-card pipeline-card">
+      <div class="card-tag">Tool Prior Paradox</div>
+      <img src="static/images/6_tool_prior_paradox.png" alt="Cross-model contrast: a weaker-prior LMM keeps format stable but RL elicits zero tool calls" />
+      <figcaption>
+        <strong>The shared cause &mdash; pretrained tool priors.</strong>
+        A weaker-prior LMM stays format-stable but RL elicits zero tool calls; a stronger-prior
+        LMM explores tools but loses format. Prior strength drives both failure modes, so a
+        workable recipe must keep format and reward tool-use credit at the same time.
+        The contrast pairs Qwen2.5-VL-7B (weak prior: <em>f<sub>&tau;</sub></em>=0.85 but 0% tool
+        calls over 520 RL steps) with Qwen3-VL-8B (strong prior: 14.4% tool usage but
+        <em>f<sub>&tau;</sub></em>=0.13 collapses fast), and PARA-GRPO recovers
+        <em>f<sub>&tau;</sub></em> to 0.41 on the latter, isolating the prior as the shared
+        driver of both failures.
+      </figcaption>
+    </figure>
+  </div>
+
+  <div class="prose">
+    <p>
+      We introduce <strong>ParaVT</strong>, the first multi-agent end-to-end RL-trained framework
+      for <strong>Para</strong>llel <strong>V</strong>ideo <strong>T</strong>ool calling: a main
+      agent emits multiple temporal-window crops in a single turn, dispatches them to weight-sharing
+      sub-agents, and aggregates the parallel evidence into a final answer. Applying standard GRPO
+      to ParaVT surfaces two coupled failures driven by the same pretrained tool prior &mdash;
+      <em>Format Fragility</em> (the SFT-learned structural tags collapse under temperature
+      sampling) and the <em>Tool Necessity Gap</em> (the skip-tool reward shortcut). We name this
+      trade-off the <strong>Tool Prior Paradox</strong> and tame it with <strong>PARA-GRPO</strong>
+      (<em>Parseability-Anchored and Ratio-gAted GRPO</em>): a targeted format reward applied only
+      at the structural-token positions most prone to collapse, paired with a per-prompt
+      frame-budget randomization that lets calling the tool earn measurable RL credit. Across seven
+      evaluation splits spanning six long-video benchmarks plus a temporal-grounding split, ParaVT
+      sets a new open-source 7-8B SOTA on six of the seven, improving over the Qwen3-VL-8B base by
+      <strong>+7.9% on average</strong>, with PARA-GRPO lifting training-time format compliance
+      from <strong>0.13 to 0.64</strong>.
+    </p>
+  </div>
+</section>
+
+<!-- ===================== METHOD ===================== -->
+<section id="method" class="section reveal">
+  <div class="section-head">
+    <span class="section-kicker">01 / Method</span>
+    <h2>Parallel hierarchical agent + PARA-GRPO</h2>
+    <p class="section-lead">
+      A main agent emits one or more <code>&lt;tool_call&gt;</code> blocks in a single turn; each call
+      is handled by an independent sub-agent that shares weights with the main agent and returns a
+      short summary; the main agent aggregates the summaries into a final answer.
+      PARA-GRPO targets the structural-format collapse and the skip-tool reward shortcut that
+      vanilla GRPO surfaces on a tool-native LMM.
+    </p>
+  </div>
+
+  <figure class="figure-card pipeline-card method-fig">
+    <div class="card-tag">Architecture</div>
+    <img src="static/images/3_architecture.png" alt="ParaVT architecture: sequential vs. parallel tool dispatch" />
+    <figcaption>
+      <strong>Sequential (left) vs. Parallel (right) tool dispatch.</strong>
+      ParaVT replaces the one-tool-per-turn pattern with single-turn parallel dispatch: the main
+      agent emits all required <code>crop_video</code> calls in one turn, each is processed by an
+      independent sub-agent, and a gather-and-reason pass produces the final answer.
+      Visual-token density inside one turn stays bounded as the number of crops grows.
+    </figcaption>
+  </figure>
+
+  <div class="formula-row reveal">
+    <div class="formula-card">
+      <div class="formula-eq">
+        R<sub>fmt</sub>(o) = <span class="big">&Sigma;</span><sub>t&isin;<span class="mono">struct</span>(o)</sub> &nbsp; log &pi;<sub>&theta;</sub>(o<sub>t</sub> | o<sub>&lt;t</sub>)
+      </div>
+      <div class="formula-cap">
+        <strong>Exploration Anchoring.</strong> Two cooperating mechanisms repair the
+        structural-boundary collapse without restricting reasoning content.
+        <em>(i) Constrained Generation</em> pins a <em>Think Prefix</em>
+        (<code>&lt;think&gt;</code>) on every response and credits the presence of a final
+        <code>&lt;answer&gt;</code> block via an <em>Answer Suffix</em> term, ruling out
+        blind direct answers and tool-only rollouts.
+        <em>(ii) Selective Anchoring</em> applies the targeted format reward only at the
+        structural-token positions <span class="mono">struct(o)</span> most prone to
+        collapse, leaving tool-call <em>content</em> tokens unconstrained.
+      </div>
+    </div>
+    <div class="formula-card">
+      <div class="formula-eq">
+        K &sim; <span class="mono">Uniform</span>(&#123;4, 8, 16, 32, 64&#125;)
+      </div>
+      <div class="formula-cap">
+        <strong>nFrames Gating.</strong> Randomize the per-prompt overview frame budget
+        <em>K</em> so that, for a controllable fraction of GRPO groups, calling the tool
+        earns measurable credit over skipping on prompts where the overview alone is
+        insufficient. The mixture of budgets in a batch keeps the cross-rollout
+        advantage of tool use non-degenerate, creating the gradient signal that the
+        Tool Necessity Gap otherwise eliminates. Exploration Anchoring must take effect
+        first so the gating gradient is credited to parseable tool-using rollouts.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== RESULTS ===================== -->
+<section id="results" class="section reveal">
+  <div class="section-head">
+    <span class="section-kicker">02 / Results</span>
+    <h2>SOTA results across six long-video benchmarks</h2>
+    <p class="section-lead">
+      All open-source rows were re-evaluated under a unified protocol
+      (image_url channel, 64 frames, per-baseline native prompt). Best result in
+      <strong>bold</strong>; <u>underlined</u> marks ParaVT's value when it is not the best
+      column-wise. <sup>&ast;</sup> withheld due to benchmark&ndash;training-data overlap.
+      <sup>&dagger;</sup> native tool-call schema not reconcilable with Charades-STA grounding output.
+    </p>
+  </div>
+
+  <div class="lb-wrap">
+    <table class="lb-table" id="lb-table">
+      <thead>
+        <tr>
+          <th class="th-model">Model</th>
+          <th class="th-num">VideoMME<br/>w/o sub</th>
+          <th class="th-num">VideoMME<br/>w/ sub</th>
+          <th class="th-num">LongVideo-<br/>Bench</th>
+          <th class="th-num">LVBench</th>
+          <th class="th-num">MLVU</th>
+          <th class="th-num">MMVU</th>
+          <th class="th-num">Charades-STA<br/>test (mIoU)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="rb-row-section"><td colspan="8" class="lb-section">Proprietary LMMs &mdash; best-setting numbers from official reports</td></tr>
+        <tr class="lb-row-anim grey-row"><td class="col-model">GPT-4o</td><td class="col-num">71.9</td><td class="col-num">77.2</td><td class="col-num">66.7</td><td class="col-num">34.7</td><td class="col-num">64.6</td><td class="col-num">66.7</td><td class="col-num">&mdash;</td></tr>
+        <tr class="lb-row-anim grey-row"><td class="col-model">Gemini 1.5 Pro</td><td class="col-num">75.0</td><td class="col-num">81.3</td><td class="col-num">64.4</td><td class="col-num">33.1</td><td class="col-num">74.3</td><td class="col-num">65.8</td><td class="col-num">&mdash;</td></tr>
+
+        <tr class="rb-row-section"><td colspan="8" class="lb-section">Open Instruct LMMs &mdash; direct answer</td></tr>
+        <tr class="lb-row-anim"><td class="col-model">Qwen2.5-VL-7B</td><td class="col-num">55.7</td><td class="col-num">64.5</td><td class="col-num">46.4</td><td class="col-num">32.2</td><td class="col-num">47.8</td><td class="col-num">65.4</td><td class="col-num">31.6</td></tr>
+
+        <tr class="rb-row-section"><td colspan="8" class="lb-section">Open Reasoning LMMs &mdash; <code>&lt;think&gt;</code> &rarr; <code>&lt;answer&gt;</code></td></tr>
+        <tr class="lb-row-anim"><td class="col-model">Video-R1-7B</td><td class="col-num">57.6</td><td class="col-num">66.0</td><td class="col-num">57.4</td><td class="col-num">36.9</td><td class="col-num">61.6</td><td class="col-num">61.3</td><td class="col-num">25.4</td></tr>
+        <tr class="lb-row-anim"><td class="col-model">VideoChat-R1-7B</td><td class="col-num">50.4</td><td class="col-num">58.2</td><td class="col-num">49.2</td><td class="col-num">23.8</td><td class="col-num">58.7</td><td class="col-num">65.0</td><td class="col-num">31.5</td></tr>
+        <tr class="lb-row-anim"><td class="col-model">VideoRFT-7B</td><td class="col-num">58.5</td><td class="col-num">65.6</td><td class="col-num">55.1</td><td class="col-num">38.0</td><td class="col-num">44.9</td><td class="col-num">42.7</td><td class="col-num">18.7</td></tr>
+        <tr class="lb-row-anim"><td class="col-model">Time-R1-7B</td><td class="col-num">58.9</td><td class="col-num">66.2</td><td class="col-num">56.0</td><td class="col-num">38.2</td><td class="col-num">60.5</td><td class="col-num">63.4</td><td class="col-num">34.7</td></tr>
+        <tr class="lb-row-anim"><td class="col-model">ReWatch-R1-7B</td><td class="col-num">58.8</td><td class="col-num">65.0</td><td class="col-num">53.6</td><td class="col-num">38.5</td><td class="col-num">60.1</td><td class="col-num">59.8</td><td class="col-num">20.2</td></tr>
+        <tr class="lb-row-anim"><td class="col-model">Video-Thinker-7B</td><td class="col-num">61.9</td><td class="col-num">65.3</td><td class="col-num">56.0</td><td class="col-num"><sup>&ast;</sup></td><td class="col-num is-best">65.2</td><td class="col-num">64.5</td><td class="col-num">29.0</td></tr>
+
+        <tr class="rb-row-section"><td colspan="8" class="lb-section">Open Agentic LMMs &mdash; <code>&lt;think&gt;</code> &rarr; <code>&lt;tool_call&gt;</code> &rarr; <code>&lt;answer&gt;</code></td></tr>
+        <tr class="lb-row-anim"><td class="col-model">Qwen3-VL-8B</td><td class="col-num">59.9</td><td class="col-num">68.4</td><td class="col-num">52.2</td><td class="col-num">33.1</td><td class="col-num">58.3</td><td class="col-num">68.0</td><td class="col-num">49.3</td></tr>
+        <tr class="lb-row-anim"><td class="col-model">Conan-7B</td><td class="col-num">55.5</td><td class="col-num">62.8</td><td class="col-num">54.5</td><td class="col-num">38.2</td><td class="col-num">59.2</td><td class="col-num">64.0</td><td class="col-num">25.4</td></tr>
+        <tr class="lb-row-anim"><td class="col-model">LongVT-RFT-7B</td><td class="col-num">59.5</td><td class="col-num">66.0</td><td class="col-num">54.7</td><td class="col-num">37.9</td><td class="col-num">59.4</td><td class="col-num">63.4</td><td class="col-num">23.4</td></tr>
+        <tr class="lb-row-anim"><td class="col-model">SAGE-7B</td><td class="col-num">44.1</td><td class="col-num">52.4</td><td class="col-num">37.4</td><td class="col-num">31.8</td><td class="col-num">49.7</td><td class="col-num">55.7</td><td class="col-num">28.9</td></tr>
+        <tr class="lb-row-anim"><td class="col-model">VideoZoomer-7B</td><td class="col-num">45.3</td><td class="col-num">48.3</td><td class="col-num">39.6</td><td class="col-num">22.9</td><td class="col-num">46.2</td><td class="col-num">61.6</td><td class="col-num"><sup>&dagger;</sup></td></tr>
+        <tr class="lb-row-anim lb-row-ours">
+          <td class="col-model"><strong>ParaVT-8B (Ours)</strong></td>
+          <td class="col-num is-best">62.1</td>
+          <td class="col-num is-best">69.4</td>
+          <td class="col-num is-best">60.4</td>
+          <td class="col-num is-best">39.8</td>
+          <td class="col-num is-2nd">65.0</td>
+          <td class="col-num is-best">68.6</td>
+          <td class="col-num is-best">50.1</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="lb-note">
+    Higher is better. ParaVT tops 6 of 7 columns and is within
+    <strong>0.2 pt</strong> of the best on MLVU. Avg over the seven columns:
+    <strong>59.3</strong> for ParaVT vs. <strong>55.6</strong> for the Qwen3-VL-8B base
+    (<strong>+7.9%</strong> relative).
+  </p>
+</section>
+
+<!-- ===================== ABLATION ===================== -->
+<section id="dynamics" class="section reveal">
+  <div class="section-head">
+    <span class="section-kicker">03 / Ablation</span>
+    <h2>PARA-GRPO restores format compliance while incentivizing tool exploration</h2>
+    <p class="section-lead">
+      Each row reports mean training-time format reward <em>f<sub>&tau;</sub></em> at sampling
+      temperature <em>&tau;</em>=0.7 and mean training-time tool-call rate per rollout
+      <em>&kappa;</em>. Curves on the right plot the same four runs step-by-step. Best result in
+      <strong>bold</strong>; rows shaded grey mark the full PARA-GRPO recipe.
+    </p>
+  </div>
+
+  <div class="ablation-grid">
+    <div class="ablation-table-wrap">
+      <table class="ablation-table">
+        <thead>
+          <tr>
+            <th class="th-model">Setting</th>
+            <th class="th-num"><em>f<sub>&tau;</sub></em></th>
+            <th class="th-num"><em>&kappa;</em></th>
+            <th class="th-num">VideoMME<br/>w/o sub</th>
+            <th class="th-num">VideoMME<br/>w/ sub</th>
+            <th class="th-num">LV-<br/>Bench</th>
+            <th class="th-num">MLVU</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="ab-row-section"><td colspan="7">(A) Training Stage</td></tr>
+          <tr><td>Qwen3-VL-8B</td><td>0.03</td><td>0.45</td><td>59.9</td><td>68.4</td><td>33.1</td><td>58.3</td></tr>
+          <tr><td>&nbsp;&nbsp;+ SFT Cold-Start</td><td>0.13</td><td>2.50</td><td>60.7</td><td>69.0</td><td>39.1</td><td>63.7</td></tr>
+          <tr><td>&nbsp;&nbsp;+ SFT + GRPO</td><td>0.13</td><td>0.02</td><td>62.0</td><td>68.6</td><td>39.3</td><td>64.5</td></tr>
+          <tr class="ab-row-ours"><td>&nbsp;&nbsp;+ SFT + PARA-GRPO</td><td><b>0.41</b></td><td>0.21</td><td><b>62.1</b></td><td><b>69.4</b></td><td><b>39.8</b></td><td><b>65.0</b></td></tr>
+
+          <tr class="ab-row-section"><td colspan="7">(B) Component Effectiveness</td></tr>
+          <tr><td>SFT + GRPO</td><td>0.13</td><td>0.02</td><td>62.0</td><td>68.6</td><td>39.3</td><td>64.5</td></tr>
+          <tr><td>&nbsp;&nbsp;+ Exploration Anchoring</td><td>0.35</td><td>0.19</td><td>61.7</td><td>68.7</td><td>39.3</td><td>64.1</td></tr>
+          <tr><td>&nbsp;&nbsp;+ nFrames Gating</td><td>0.10</td><td>1.36</td><td>61.3</td><td>68.7</td><td>39.1</td><td>63.6</td></tr>
+          <tr class="ab-row-ours"><td>Full PARA-GRPO</td><td><b>0.41</b></td><td>0.21</td><td><b>62.1</b></td><td><b>69.4</b></td><td><b>39.8</b></td><td><b>65.0</b></td></tr>
+          <tr><td>&nbsp;&nbsp;&minus; Tool Reward <em>R</em><sub>tool</sub></td><td>0.33</td><td>0.04</td><td>61.9</td><td>68.5</td><td>38.7</td><td>64.3</td></tr>
+          <tr><td>&nbsp;&nbsp;&minus; Penalty Term <em>&gamma;</em></td><td>0.36</td><td>0.27</td><td>61.6</td><td>69.0</td><td>38.8</td><td>64.5</td></tr>
+
+          <tr class="ab-row-section"><td colspan="7">(C) Dispatch Mode</td></tr>
+          <tr><td>Sequential Tool Calling</td><td>&mdash;</td><td>&mdash;</td><td>61.4</td><td>68.8</td><td>37.5</td><td>64.1</td></tr>
+          <tr class="ab-row-ours"><td>Parallel Tool Calling</td><td>&mdash;</td><td>&mdash;</td><td><b>62.1</b></td><td><b>69.4</b></td><td><b>39.8</b></td><td><b>65.0</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="ablation-right">
+      <figure class="figure-card pipeline-card ablation-fig">
+        <div class="card-tag">Training dynamics</div>
+        <img src="static/images/4_training_curves.png" alt="Training curves: vanilla GRPO format reward falls to 0.13; PARA-GRPO rises to 0.64" />
+        <figcaption>
+          <strong>Vanilla GRPO vs. PARA-GRPO across RL steps.</strong>
+          Vanilla GRPO's format reward collapses within 20 steps; PARA-GRPO lifts it above 0.6
+          and holds it through the run while keeping the tool-call rate non-degenerate.
+          Reasoning-content tokens stay free to evolve under RL.
+        </figcaption>
+      </figure>
+
+      <div class="ablation-analysis">
+        <p>
+          <strong>Reading the table.</strong> Block (A) shows that SFT cold-start mostly
+          transfers tool-call format (<em>&kappa;</em>: 0.45&nbsp;&rarr;&nbsp;2.50) but not
+          format reward (<em>f<sub>&tau;</sub></em>=0.13), and that GRPO on top of cold-start
+          collapses <em>&kappa;</em> to 0.02. PARA-GRPO recovers
+          <em>f<sub>&tau;</sub></em> to 0.41 and <em>&kappa;</em> to 0.21, and posts the best
+          score on every benchmark column.
+          Block (B) confirms neither component alone suffices: Exploration Anchoring on its
+          own holds format up but suppresses tool calls; nFrames Gating on its own keeps tools
+          active but tanks format. Only their composition wins on both axes.
+          Block (C) shows the same trained checkpoint dispatched in parallel beats sequential
+          calling by +0.7 to +2.3 across benchmarks, with no extra training.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== BIBTEX ===================== -->
+<section id="bibtex" class="section reveal">
+  <div class="section-head">
+    <span class="section-kicker">Citation</span>
+    <h2>If you find this project helpful, please consider citing our paper</h2>
+  </div>
+  <pre class="bibtex">@misc{yang2026paravt,
+  title={{ParaVT}: Taming the Tool Prior Paradox for Parallel Tool Use in Agentic Video Reinforcement Learning},
+  author={Zuhao Yang and Kaichen Zhang and Sudong Wang and Keming Wu and Zhongyu Yang
+          and Bo Li and Xiaojuan Qi and Shijian Lu and Xingxuan Li and Lidong Bing},
+  year={2026},
+  eprint={2605.20342},
+  archivePrefix={arXiv},
+  primaryClass={cs.CV}
+}</pre>
+</section>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="site-footer">
+  <div class="prose">
+    <p>
+      ParaVT builds on <a href="https://github.com/EvolvingLMMs-Lab/LongVT">LongVT</a>
+      (CVPR 2026) for native video tool calling,
+      <a href="https://github.com/EvolvingLMMs-Lab/lmms-engine"><code>lmms-engine</code></a>
+      for cold-start SFT, <a href="https://github.com/inclusionAI/AReaL"><code>AReaL</code></a>
+      for RL training, and
+      <a href="https://github.com/EvolvingLMMs-Lab/lmms-eval"><code>lmms-eval</code></a>
+      for evaluation. Page template adapted from
+      <a href="https://unix-ai-lab.github.io/WorldReasonBench/">WorldReasonBench</a>.
+    </p>
+  </div>
+</footer>
+
+<script src="static/js/main.js?v=paravt-6"></script>
+</body>
+</html>
