@@ -98,13 +98,10 @@ ParaVT builds on three open-source frameworks: [**lmms-engine**](https://github.
 If you find this project helpful, please consider citing our paper:
 
 ```bibtex
-@misc{yang2026paravt,
-  title={{ParaVT}: Taming the Tool Prior Paradox for Parallel Tool Use in Agentic Video Reinforcement Learning},
-  author={Zuhao Yang and Kaichen Zhang and Sudong Wang and Keming Wu and Zhongyu Yang
-          and Bo Li and Xiaojuan Qi and Shijian Lu and Xingxuan Li and Lidong Bing},
-  year={2026},
-  eprint={2605.20342},
-  archivePrefix={arXiv},
-  primaryClass={cs.CV}
+@article{yang2026paravt,
+  title={ParaVT: Taming the Tool Prior Paradox for Parallel Tool Use in Agentic Video Reinforcement Learning},
+  author={Yang, Zuhao and Zhang, Kaichen and Wang, Sudong and Wu, Keming and Yang, Zhongyu and Li, Bo and Qi, Xiaojuan and Lu, Shijian and Li, Xingxuan and Bing, Lidong},
+  journal={arXiv preprint arXiv:2605.20342},
+  year={2026}
 }
 ```
