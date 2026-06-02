@@ -317,8 +317,55 @@ def _score(sample: dict[str, Any], final: str) -> tuple[Any, float, Any]:
     return None, 0.0, final[:200]
 
 
+def _redact_content(content: Any) -> Any:
+    """Return a base64-free, JSON-serializable view of one message's content.
+
+    Image/video parts are collapsed to a single ``<N frame(s) omitted>``
+    marker so a saved transcript stays small and free of megabytes of
+    base64; text parts (the question, the ``<think>`` / ``<tool_call>`` /
+    ``<tool_response>`` blocks, the final answer) are preserved verbatim.
+    """
+    if not isinstance(content, list):
+        return content
+    parts: list[Any] = []
+    n_img = 0
+    n_vid = 0
+    for item in content:
+        if isinstance(item, dict) and item.get("type") == "image_url":
+            n_img += 1
+        elif isinstance(item, dict) and item.get("type") == "video_url":
+            n_vid += 1
+        elif isinstance(item, dict) and item.get("type") == "text":
+            parts.append(item.get("text", ""))
+        else:
+            parts.append(item)
+    prefix: list[str] = []
+    if n_vid:
+        prefix.append("<video omitted>" if n_vid == 1 else f"<{n_vid} videos omitted>")
+    if n_img:
+        prefix.append(f"<{n_img} frame(s) omitted>")
+    parts = prefix + parts
+    if all(isinstance(p, str) for p in parts):
+        return "\n".join(parts)
+    return parts
+
+
+def _trajectory_view(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Project the in-memory message list to a compact, persistable transcript."""
+    return [
+        {"role": m.get("role", "?"), "content": _redact_content(m.get("content"))}
+        for m in messages
+    ]
+
+
 def _make_result(
-    sample: dict[str, Any], final: str, pred: Any, correct: Any, score: float, tool_calls: int
+    sample: dict[str, Any],
+    final: str,
+    pred: Any,
+    correct: Any,
+    score: float,
+    tool_calls: int,
+    trajectory: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     result: dict[str, Any] = {
         "id": sample["id"],
@@ -334,6 +381,8 @@ def _make_result(
             result[extra] = sample[extra]
     if not sample["is_mcq"]:
         result["pred_text"] = final[:500]
+    if trajectory is not None:
+        result["trajectory"] = trajectory
     return result
 
 
@@ -426,6 +475,7 @@ def eval_one(
     max_parallel: int = 5,
     max_tokens: int = DEFAULT_MAX_TOKENS,
     video_channel: str = "image_url",
+    save_trajectory: bool = False,
 ) -> dict[str, Any]:
     """Evaluate one sample under one of the seven prompt modes.
 
@@ -459,7 +509,13 @@ def eval_one(
             except Exception as e:
                 return {**utils.base_result(sample), "error": f"api error: {str(e)[:120]}"}
             correct, score, pred = _score(sample, final)
-            return _make_result(sample, final, pred, correct, score, tool_calls=0)
+            trajectory = None
+            if save_trajectory:
+                transcript = base_messages + [{"role": "assistant", "content": final}]
+                trajectory = _trajectory_view(transcript)
+            return _make_result(
+                sample, final, pred, correct, score, tool_calls=0, trajectory=trajectory
+            )
 
         # agentic multi-turn dispatch
         messages = list(base_messages)
@@ -539,7 +595,15 @@ def eval_one(
                 break
 
         correct, score, pred = _score(sample, final)
-        return _make_result(sample, final, pred, correct, score, tool_calls=tool_calls)
+        trajectory = None
+        if save_trajectory:
+            transcript = list(messages)
+            if final:
+                transcript.append({"role": "assistant", "content": final})
+            trajectory = _trajectory_view(transcript)
+        return _make_result(
+            sample, final, pred, correct, score, tool_calls=tool_calls, trajectory=trajectory
+        )
     except Exception as e:
         return {**utils.base_result(sample), "error": str(e)[:200]}
 
@@ -552,6 +616,7 @@ def main() -> None:
         max_parallel=args.max_parallel,
         max_tokens=args.max_tokens,
         video_channel=args.video_channel,
+        save_trajectory=args.save_trajectory,
     )
     utils.run_eval(
         args,
@@ -635,6 +700,15 @@ def _parse_args_with_prompt_mode():
         action="store_true",
         help="Deprecated alias for --prompt_mode direct (kept for "
         "backward compat with the prior release).",
+    )
+    parser.add_argument(
+        "--save_trajectory",
+        action="store_true",
+        help="Persist the full per-sample chat transcript into each "
+        "result's 'trajectory' field: every main-model turn "
+        "(<think>/<tool_call>), every <tool_response> crop turn, and the "
+        "final answer. Base64 frames are collapsed to '<N frame(s) "
+        "omitted>' markers. Off by default to keep result JSONs small.",
     )
     parser.add_argument(
         "--shard_id",

@@ -73,6 +73,7 @@ python -m paravt.eval.driver \
 | `--shard_id` / `--num_shards` | 0 / 1 | cross-machine slicing |
 | `--smoke_test` | off | 1 GPU, 5 samples per dataset |
 | `--limit N` | none | finer-grained dev-loop sample cap |
+| `--save_trajectory` | off | persist each sample's full chat transcript into a `trajectory` field (see below) |
 
 The values below reproduce the paper's headline row; do not change them without re-running the full sweep:
 
@@ -90,6 +91,37 @@ The values below reproduce the paper's headline row; do not change them without 
 | `--max-num-batched-tokens` | 131072 | driver default |
 | `--limit-mm-per-prompt` | `{"video":1,"image":1024}` | hard-coded in `launch_servers` |
 | vLLM | 0.17.x | `requirements/eval.lock` |
+
+## Inspecting the full chat transcript (`--save_trajectory`)
+
+By default each result row keeps only the scalar `tool_calls` count plus
+`full_response` — and `full_response` is **just the last turn**, truncated to
+500 chars. For an agentic (tool-using) sample that means the saved row drops
+the model's per-turn `<think>` reasoning, the `<tool_call>` arguments, and the
+`<tool_response>` crop turns; when a sample exhausts `--max_turns` the final
+turn is the forced *"answer with ONLY the letter"* closer (`max_tokens` 64), so
+the persisted text legitimately looks reasoning-free even though the model
+reasoned in earlier turns. This is purely a **save-time** projection in
+`eval_one` → `_make_result`: the multi-turn `messages` list is built and sent in
+full (no reasoning is stripped, and the driver does **not** launch vLLM with a
+reasoning parser, so `<think>` stays inline in `message.content`), it is just
+not serialized.
+
+Pass `--save_trajectory` to attach the complete per-sample transcript:
+
+```bash
+python -m paravt.eval.driver \
+    --model_path ParaVT/ParaVT-8B \
+    --datasets videomme --output_dir ./eval-results/paravt \
+    --prompt_mode agentic_general --save_trajectory --limit 5
+```
+
+Each result then carries a `trajectory` list of `{role, content}` turns —
+every main-model turn (`<think>` + `<tool_call>`), every `<tool_response>` crop
+turn, and the final answer, in order. Base64 frames are collapsed to a compact
+`<N frame(s) omitted>` marker so files stay small and contain no image bytes.
+The flag is off by default and additive: it never changes `pred`, `score`,
+`tool_calls`, or `full_response`, so reported numbers are unaffected.
 
 ## Prompt modes
 
