@@ -4,6 +4,8 @@
 
 **Taming the Tool Prior Paradox for Parallel Tool Use in Agentic Video Reinforcement Learning**
 
+🏆 **Accepted to NeurIPS 2026 · Main Track**
+
 [![Paper](https://img.shields.io/badge/Paper-000000?style=for-the-badge&logo=arxiv&logoColor=white)](https://arxiv.org/abs/2605.20342)
 [![Website](https://img.shields.io/badge/Website-000000?style=for-the-badge&logo=google-chrome&logoColor=white)](https://evolvinglmms-lab.github.io/ParaVT/)
 [![Data](https://img.shields.io/badge/Data-0040A1?style=for-the-badge&logo=huggingface&logoColor=ffffff)](https://huggingface.co/datasets/ParaVT/ParaVT-Parquet)
