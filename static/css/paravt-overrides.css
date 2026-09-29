@@ -190,3 +190,17 @@ pre.bibtex {
 }
 .site-footer a { color: #1a5fb4; text-decoration: none; }
 .site-footer a:hover { text-decoration: underline; }
+
+/* venue pill under the title (same as the WorldReasonBench page) */
+.venue-row { margin: -6px 0 26px; }
+.venue {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 18px;
+  border-radius: 100px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #92400e;
+  font-size: 15px; font-weight: 600; letter-spacing: 0.2px;
+}
+.venue strong { font-weight: 800; color: #78350f; }
+.venue i { color: var(--accent); font-size: 13px; }
