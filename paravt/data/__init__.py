@@ -19,4 +19,4 @@ and round-trips byte-exact through ``sanitize → materialize`` (modulo
 filename rename).
 """
 
-__all__ = ["sanitize", "materialize"]
+__all__ = ["materialize"]  # sanitize is release-prep tooling and is not shipped

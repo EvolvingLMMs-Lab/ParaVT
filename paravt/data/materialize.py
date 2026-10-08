@@ -30,10 +30,11 @@ from typing import Any
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from paravt.data.sanitize import SENTINEL_RULES
 
 
-SENTINEL_PREFIXES: tuple[str, ...] = tuple(sentinel for _, sentinel in SENTINEL_RULES)
+# Relative prefixes that sanitize.py (release prep, not shipped) writes in place of cluster paths.
+# Kept as literals so the public package does not depend on the internal path table.
+SENTINEL_PREFIXES: tuple[str, ...] = ("longvt_source/", "museg/charades/", "museg/et_instruct_164k/", "selfqa/")
 
 
 def materialize_path(rel: str, root: Path, missing: Counter) -> str:
